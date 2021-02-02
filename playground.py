@@ -84,8 +84,8 @@ clf.fit(X_train, y_train)
 
 # set classification rates
 alphas = {
-    0: .8,
-    1: .8
+    0: .1,
+    1: .1
 }
 
 
