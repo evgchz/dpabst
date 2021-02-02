@@ -65,8 +65,11 @@ def get_adult(shuffle=True, seed=None):
     return X, y
 
 
+# get data
 X, y = get_adult(True, 42)
 
+
+# split data
 n_train = 20000
 n_unlab = 10000
 X_train, y_train = X[:n_train, :], y[:n_train]
@@ -74,46 +77,25 @@ X_unlab = X[n_train:n_train + n_unlab, :]
 X_test, y_test = X[n_train + n_unlab:, :], y[n_train + n_unlab:]
 
 
-
+# Train base classifier
 clf = LogisticRegression()
 clf.fit(X_train, y_train)
 
 
+# set classification rates
 alphas = {
     0: .8,
     1: .8
 }
 
 
+# fit transformer
 transformer = TransformDPAbstantion(clf, alphas)
 transformer.fit(X_unlab)
 
 
+# print results
 y_pred = transformer.predict(X_test)
 print('[Accuracy]: {:.3f}'.format(risk(y_test, y_pred, X_test[:, -1])))
 compute_dp(y_pred, X_test[:, -1], label='Predicted')
-
-
-
 compute_dp(y_test, X_test[:, -1], label='True')
-
-# some random init, to test
-# K = 4
-# # ps = np.random.dirichlet(np.ones(K))
-# # ps = np.array([0.5, 0.5])
-# ns = np.random.randint(10, 100, K)
-# # ns = np.array([1, 1])
-# alphas = np.random.uniform(0.5, 1, K)
-# # alphas = .9 * np.ones(K)
-# pred_prob = np.random.uniform(0, 1, np.sum(ns))
-
-# n = ns.sum()
-# ps = build_ps(ns)
-# # print('n = {}, K = {}'.format(n, K))
-# # print('Starting to solve lp ...')
-# # t0 = time.time()
-# # res = solve_lp(ps, ns, alphas, pred_prob)
-# # t1 = time.time()
-# # print('Finished in {:.1f} sec'.format(t1 - t0))
-# # print('--- results ---')
-# # print(res)
