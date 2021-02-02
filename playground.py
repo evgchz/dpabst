@@ -22,43 +22,53 @@ def risk(y_true, y_pred, x_sens):
         mask_s = (x_sens == s)
         mask = (x_sens == s) & (y_pred != 10000.)
         pr = mask.sum() / mask_s.sum()
-        print('Classification rate for s = {} is {}'.format(s, pr))
+        print('[Predicted]: classification rate for s = {} is {:.3f}'.format(s, pr))
     return num / den
 
 
-def compute_dp(y_pred, x_sens):
+def compute_dp(y_pred, x_sens, label):
     sensitives = np.unique(x_sens)
     for s in sensitives:
         mask = (x_sens == s) & (y_pred != 10000.)
         pos_r = y_pred[mask].sum() / mask.sum()
-        print('Positive rate for s = {} is {}'.format(s, pos_r))
-
-adult = fetch_adult()
-X = adult["data"]
-y = adult["target"]
-X[:,[9,-1]] = X[:,[-1,9]]
-
-y = y[~np.isnan(X).any(axis=1)]
-X = X[~np.isnan(X).any(axis=1)]
-permute = np.random.permutation(len(y))
+        print('[{}]: positive rate for s = {} is {:.3f}'.format(label, s,
+                                                                pos_r))
 
 
 
-y = y[permute]
-X = X[permute]
-X = X.astype('float')
+def get_adult(shuffle=True, seed=None):
+    np.random.seed(seed)
+    adult = fetch_adult()
+    X = adult["data"]
+    y = adult["target"]
 
-for i, lab in enumerate(y):
-    if y[i] == "<=50K":
-        y[i] = 0.
-    else:
-        y[i] = 1.
+    X[:, [9,-1]] = X[:, [-1,9]] # puts sex into the last column
 
+    # Erase nan values
+    y = y[~np.isnan(X).any(axis=1)]
+    X = X[~np.isnan(X).any(axis=1)]
+
+    # shuffle data
+    if shuffle:
+        permute = np.random.permutation(len(y))
+        y = y[permute]
+        X = X[permute]
+
+    # transform to binary and set proper type
+    X = X.astype('float')
+    for i, lab in enumerate(y):
+        if y[i] == "<=50K":
+            y[i] = 0.
+        else:
+            y[i] = 1.
+    y = y.astype('float')
+    return X, y
+
+
+X, y = get_adult(True, 42)
 
 n_train = 20000
-n_unlab = 8000
-y = y.astype('float')
-
+n_unlab = 10000
 X_train, y_train = X[:n_train, :], y[:n_train]
 X_unlab = X[n_train:n_train + n_unlab, :]
 X_test, y_test = X[n_train + n_unlab:, :], y[n_train + n_unlab:]
@@ -70,8 +80,8 @@ clf.fit(X_train, y_train)
 
 
 alphas = {
-    0: 0.9,
-    1: 0.6
+    0: .8,
+    1: .8
 }
 
 
@@ -80,10 +90,12 @@ transformer.fit(X_unlab)
 
 
 y_pred = transformer.predict(X_test)
-print('accuracy: ', risk(y_test, y_pred, X_test[:, -1]))
-compute_dp(y_pred, X_test[:, -1])
+print('[Accuracy]: {:.3f}'.format(risk(y_test, y_pred, X_test[:, -1])))
+compute_dp(y_pred, X_test[:, -1], label='Predicted')
 
 
+
+compute_dp(y_test, X_test[:, -1], label='True')
 
 # some random init, to test
 # K = 4
