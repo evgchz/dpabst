@@ -47,11 +47,7 @@ class TransformDPAbstantion():
         # stupid implementation
         y_pred = []
         n, _ = X.shape
-        # print(self.check_reject_)
         probs = self.base.predict_proba(X)[:, 1]
-        # print(probs)
-        # print(self.check_reject_[0])
-        # print(self.thresholds_)
         for i in range(n):
             s = X[i, -1]
             y_pred.append(predict(s, probs[i], self.thresholds_,
