@@ -38,7 +38,3 @@ def convert_lp_result(res, ns, K):
     lambdas = res['x'][ns.sum() : ns.sum() + K]
     gammas = res['x'][ns.sum() + K :]
     return lambdas, gammas
-
-
-def build_prediction(alphas, gammas):
-    pass
