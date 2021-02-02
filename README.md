@@ -13,6 +13,9 @@ The reason for this bug is not clear to us, if we face it, we run the code again
 This code was running with the following packages
 
 scipy 1.6.0
+
 numpy 1.20.0
+
 fairlearn 0.5.0
+
 sklearn 0.23.2
