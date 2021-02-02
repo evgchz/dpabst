@@ -5,15 +5,6 @@ from sklearn.exceptions import NotFittedError
 from lp_solver import solve_lp
 
 
-def predict(s, prob, thresholds, rejects):
-    if np.abs(rejects[s][0] - prob) <= rejects[s][1]:
-        return 10000.0
-    elif prob > thresholds[s]:
-        return 1.
-    else:
-        return 0.
-
-
 class TransformDPAbstantion():
     def __init__(self, base_classifier, alphas=None):
         self.base = base_classifier
@@ -45,11 +36,20 @@ class TransformDPAbstantion():
 
     def predict(self, X):
         # stupid implementation
-        y_pred = []
         n, _ = X.shape
         probs = self.base.predict_proba(X)[:, 1]
-        for i in range(n):
-            s = X[i, -1]
-            y_pred.append(predict(s, probs[i], self.thresholds_,
-                                  self.check_reject_))
-        return np.array(y_pred)
+
+        y_pred = np.zeros(n)
+        sensitives = np.unique(X[:, -1])
+
+        for s in sensitives:
+            s_mask = X[:, -1] == s
+            a = self.check_reject_[s][0]
+            b = self.check_reject_[s][1]
+            c = self.thresholds_[s]
+            m_pos = np.where((X[:, -1] == s) & (probs > c), True, False)
+            m_rej = np.where((X[:, -1] == s) & (np.abs(a - probs) <= b),
+                             True, False)
+            y_pred[m_pos] = 1.
+            y_pred[m_rej] = 10000.
+        return y_pred
