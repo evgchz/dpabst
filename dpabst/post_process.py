@@ -1,11 +1,12 @@
 import numpy as np
 from sklearn.exceptions import NotFittedError
+from sklearn.base import BaseEstimator
 from .lp_transformer import build_params, convert_lp_result
 from .lp_solver import solve_lp
 from .lp_solver import solve_lp
 
 
-class TransformDPAbstantion():
+class TransformDPAbstantion(BaseEstimator):
     def __init__(self, base_classifier, alphas=None):
         self.base = base_classifier
         self.alphas = alphas
