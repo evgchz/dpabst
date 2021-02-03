@@ -2,10 +2,15 @@
 Post-processing algorithm for binary classification with abstention and DP constraints
 
 
-# Warning
+# Warnings
 
-Due to this bug https://github.com/scikit-optimize/scikit-optimize/issues/981 use `LogisticRegression` with `solver='liblinear'`
+1. Due to this bug https://github.com/scikit-optimize/scikit-optimize/issues/981 use `LogisticRegression` with `solver='liblinear'`
 
+2. It is explicitly assumed that the sensitive attribute is stored in the LAST column of the design matrix.
+
+3. It is explicitly assumed that the labels are valued in 0,1.
+
+4. The prediction is 0, 1, or 10000. Reject is interpreted as 10000.
 
 # Dependencies
 
