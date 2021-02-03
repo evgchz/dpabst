@@ -12,17 +12,13 @@ class TransformDPAbstantion():
 
     def fit(self, X_unlab):
         sensitives = np.unique(X_unlab[:, -1])
-        n = len(X_unlab[:, -1])
-        K = len(sensitives)
         if set(self.base.classes_) != set([0., 1.]):
             raise ValueError('Target variable is not valued in 0/1')
         if set(sensitives) != set(self.alphas.keys()):
             raise ValueError('Groups do not match: data {}, alphas {}'.format(set(sensitives), set(self.alphas.keys())))
-        binary = [0., 1.]
-        try:
-            prob = self.base.predict_proba(X_unlab)
-        except NotFittedError as e:
-            print(repr(e))
+        n = len(X_unlab[:, -1])
+        K = len(sensitives)
+        prob = self.base.predict_proba(X_unlab)
         prob = prob[:, 1]
         ps, ns, pred_prob, alphas = build_params(X_unlab, prob, self.alphas)
         res = solve_lp(ps, ns, alphas, pred_prob)
