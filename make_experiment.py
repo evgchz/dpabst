@@ -1,5 +1,5 @@
 import numpy as np
-from post_process import TransformDPAbstantion
+from dpabst.post_process import TransformDPAbstantion
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import LinearSVC, SVC

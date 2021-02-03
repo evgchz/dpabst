@@ -1,8 +1,8 @@
 import numpy as np
-from lp_solver import solve_lp
-from lp_transformer import build_params, convert_lp_result
 from sklearn.exceptions import NotFittedError
-from lp_solver import solve_lp
+from .lp_transformer import build_params, convert_lp_result
+from .lp_solver import solve_lp
+from .lp_solver import solve_lp
 
 
 class TransformDPAbstantion():

@@ -1,4 +1,4 @@
-from lp_builder import build_A, build_c, build_b, build_l, build_u
+from .lp_builder import build_A, build_c, build_b, build_l, build_u
 from scipy.optimize import linprog
 
 def solve_lp(ps, ns, alphas, pred_prob):
