@@ -8,25 +8,30 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.calibration import CalibratedClassifierCV
 
 
-def risk(y_true, y_pred, x_sens):
 
+def classififcation_rate(y_pred, x_sens):
     sensitives = np.unique(x_sens)
-    report_accuracy = {}
+    report_reject = {}
     for s in sensitives:
         mask_s = (x_sens == s)
         mask = (x_sens == s) & (y_pred != 10000.)
         pr = mask.sum() / mask_s.sum()
-        report_accuracy['clf_rate_'+str(s)] = pr
+        report_reject['Classification rate on {}'.format(s)] = pr
+    return report_reject
+
+
+def risk(y_true, y_pred, x_sens):
+
+    sensitives = np.unique(x_sens)
+    report_accuracy = {}
 
     corect = y_true[(y_pred != 10000.)] == y_pred[(y_pred != 10000.)]
     accuracy_overall = np.mean(corect)
-    report_accuracy['acc_total'] = accuracy_overall
-
-    # We split it to have better order of keys ... (Stupid, we know)
+    report_accuracy['Accuracy'] = accuracy_overall
     for s in sensitives:
         mask = (x_sens == s) & (y_pred != 10000.)
         acc_s = np.mean((y_true[mask] == y_pred[mask]))
-        report_accuracy['acc_'+str(s)] = acc_s
+        report_accuracy['Accuracy on {}'.format(s)] = acc_s
     return report_accuracy
 
 
@@ -36,13 +41,13 @@ def compute_dp(y_pred, x_sens):
     for s in sensitives:
         mask = (x_sens == s) & (y_pred != 10000.)
         pos_r = y_pred[mask].sum() / mask.sum()
-        report_fairness['pos_rate_{}'.format(str(s))] = pos_r
+        report_fairness['Positive rate on {}'.format(s)] = pos_r
     return report_fairness
 
 
-def print_report(report):
+def print_report(report, description):
     for key in report.keys():
-        print('[REPORT]: {} is {:.3f}'.format(key, report[key]))
+        print('[{}]: {} is {:.3f}'.format(description, key, report[key]))
 
 
 
@@ -61,7 +66,7 @@ def split_data(X, y, proc_train, proc_unlab, seed=None, shuffle=True):
     return X_train, y_train, X_unlab, X_test, y_test
 
 
-def run_experiment(X, y, alphas, seed, proc_train,
+def run_experiment(X, y, alphas, seed, method, proc_train,
                    proc_unlab, cv, num_c, num_gamma,
                    verbose, n_jobs):
     X_train, y_train, X_unlab, X_test, y_test = split_data(X, y, proc_train,
@@ -97,29 +102,33 @@ def run_experiment(X, y, alphas, seed, proc_train,
         "RF" : {"max_features" : ds}
         # "RBF-SVC" : {"C" : Cs, "gamma" : gammas}
     }
-    for key in methods.keys():
-        clf = GridSearchCV(methods[key], parameters[key],
-                           cv=cv, refit=True, verbose=verbose,
-                           n_jobs=n_jobs)
-        clf.fit(X_train, y_train)
-        transformer = TransformDPAbstantion(clf, alphas)
-        transformer.fit(X_unlab)
-        y_pred = transformer.predict(X_test)
-        print('[RESULTS]: {} summary'.format(key))
-        print('[Statistics: test data]')
-        report_fairness = compute_dp(y_test, X_test[:, -1])
-        print_report(report_fairness)
+    # for key in methods.keys():
+    key = method
+    clf = GridSearchCV(methods[key], parameters[key],
+                       cv=cv, refit=True, verbose=verbose,
+                       n_jobs=n_jobs)
+    clf.fit(X_train, y_train)
+    transformer = TransformDPAbstantion(clf, alphas)
+    transformer.fit(X_unlab)
+    y_pred = transformer.predict(X_test)
+    y_pred_unf = clf.predict(X_test)
 
-        print('[Statistics: base algorithm]')
-        y_pred_unf = clf.predict(X_test)
-        report_accuracy0 = risk(y_test, y_pred_unf, X_test[:, -1])
-        report_fairness0 = compute_dp(y_pred_unf, X_test[:, -1])
-        print_report(report_accuracy0)
-        print_report(report_fairness0)
+    # For test data
+    print('[{}]: summary'.format(key))
+    report_fairness_test = compute_dp(y_test, X_test[:, -1])
+    print_report(report_fairness_test, 'Test data')
 
-        print('[Statistics: our algorithm]')
-        report_accuracy1 = risk(y_test, y_pred, X_test[:, -1])
-        report_fairness1 = compute_dp(y_pred, X_test[:, -1])
-        print_report(report_accuracy1)
-        print_report(report_fairness1)
+    # For base method
+    report_accuracy_base = risk(y_test, y_pred_unf, X_test[:, -1])
+    report_fairness_test = compute_dp(y_pred_unf, X_test[:, -1])
+    print_report(report_accuracy_base, 'Base method')
+    print_report(report_fairness_test, 'Base method')
+
+    # For our method
+    report_accuracy_our = risk(y_test, y_pred, X_test[:, -1])
+    report_fairness_our = compute_dp(y_pred, X_test[:, -1])
+    report_reject_our = classififcation_rate(y_pred, X_test[:, -1])
+    print_report(report_accuracy_our, 'Our method')
+    print_report(report_fairness_our, 'Our method')
+    print_report(report_reject_our, 'Our method')
     # break

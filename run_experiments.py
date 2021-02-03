@@ -7,7 +7,7 @@ RUN_ADULT = True
 RUN_MARKET = False
 RUN_COMPAS = False
 RUN_GERMAN = False
-
+METHODS = ['LR']
 
 
 
@@ -40,11 +40,15 @@ alphas = {
 }
 total = len(seeds)
 
-for data in datasets.keys():
-    if check_run[data]:
-        for i, seed in enumerate(seeds):
-            print('[{}]: {}/{}'.format(data, i + 1, total))
-            X, y = datasets[data]()
-            run_experiment(X=X, y=y, alphas=alphas, seed=seed, **setup)
-    else:
-        print('[{}] skipped'.format(data))
+for method in METHODS:
+    print('[{}] is running'.format(method))
+    for data in datasets.keys():
+        if check_run[data]:
+            for i, seed in enumerate(seeds):
+                print('[{}]: {}/{}'.format(data, i + 1, total))
+                X, y = datasets[data]()
+                run_experiment(X=X, y=y, alphas=alphas,
+                               seed=seed, method=method,
+                               **setup)
+        else:
+            print('[{}] skipped'.format(data))
