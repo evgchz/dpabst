@@ -14,7 +14,11 @@ class TransformDPAbstantion():
         sensitives = np.unique(X_unlab[:, -1])
         n = len(X_unlab[:, -1])
         K = len(sensitives)
-        assert set(sensitives) == set(self.alphas.keys()), 'Sensitive attributes do not match'
+        if set(self.base.classes_) != set([0., 1.]):
+            raise ValueError('Target variable is not valued in 0/1')
+        if set(sensitives) != set(self.alphas.keys()):
+            raise ValueError('Groups do not match: data {}, alphas {}'.format(set(sensitives), set(self.alphas.keys())))
+        binary = [0., 1.]
         try:
             prob = self.base.predict_proba(X_unlab)
         except NotFittedError as e:
