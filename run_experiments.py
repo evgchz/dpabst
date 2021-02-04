@@ -1,6 +1,17 @@
 import numpy as np
 from get_data import get_adult
 from make_experiment import split_data, run_experiment
+import pickle
+
+
+def save_obj(obj, name):
+    with open('results/'+ name + '.pkl', 'wb+') as f:
+        pickle.dump(obj, f, 0)
+
+def load_obj(name):
+    with open('results/' + name + '.pkl', 'rb') as f:
+        return pickle.load(f)
+
 
 
 RUN_ADULT = True
@@ -8,7 +19,6 @@ RUN_MARKET = False
 RUN_COMPAS = False
 RUN_GERMAN = False
 METHODS = ['LR']
-
 
 
 setup = {
@@ -33,22 +43,29 @@ datasets = {
             'German': None,
             'Adult': get_adult
             }
-seeds = np.arange(10)
-alphas = {
-    0: .8,
-    1: .8
-}
+seeds = np.arange(20)
+
+# setting alphas to a number means that all groups have the same reject rate
+alphas_grid = np.linspace(.5, .95, 10)
+
 total = len(seeds)
 
 for method in METHODS:
     print('[{}] is running'.format(method))
     for data in datasets.keys():
-        if check_run[data]:
-            for i, seed in enumerate(seeds):
-                print('[{}]: {}/{}'.format(data, i + 1, total))
-                X, y = datasets[data]()
-                run_experiment(X=X, y=y, alphas=alphas,
-                               seed=seed, method=method,
-                               **setup)
+        if not check_run[data]:
+                print('[{}] skipped'.format(data))
         else:
-            print('[{}] skipped'.format(data))
+            results = {}
+            X, y = datasets[data]()
+            sensitives = np.unique(X[:, -1])
+            for alphas in alphas_grid:
+                print('[Classification rate] {}'.format(alphas))
+                for i, seed in enumerate(seeds):
+                    print('[{}]: {}/{}'.format(data, i + 1, total))
+                    result_seed = run_experiment(X=X, y=y, alphas=alphas,
+                                                 seed=seed, method=method,
+                                                 data_name=data, **setup)
+                    results[alphas, seed] = result_seed
+            SAVE_NAME = '{}_{}'.format(data, method)
+            save_obj(results, SAVE_NAME)

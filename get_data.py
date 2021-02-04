@@ -1,4 +1,4 @@
-from fairlearn.datasets import fetch_adult
+from fairlearn.datasets import fetch_adult, fetch_bank_marketing
 import numpy as np
 
 

@@ -6,6 +6,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.calibration import CalibratedClassifierCV
+import pandas as pd
 
 
 
@@ -16,7 +17,7 @@ def classififcation_rate(y_pred, x_sens):
         mask_s = (x_sens == s)
         mask = (x_sens == s) & (y_pred != 10000.)
         pr = mask.sum() / mask_s.sum()
-        report_reject['Classification rate on {}'.format(s)] = pr
+        report_reject['rej{}'.format(s)] = pr
     return report_reject
 
 
@@ -27,11 +28,11 @@ def risk(y_true, y_pred, x_sens):
 
     corect = y_true[(y_pred != 10000.)] == y_pred[(y_pred != 10000.)]
     accuracy_overall = np.mean(corect)
-    report_accuracy['Accuracy'] = accuracy_overall
+    report_accuracy['acc'] = accuracy_overall
     for s in sensitives:
         mask = (x_sens == s) & (y_pred != 10000.)
         acc_s = np.mean((y_true[mask] == y_pred[mask]))
-        report_accuracy['Accuracy on {}'.format(s)] = acc_s
+        report_accuracy['acc{}'.format(s)] = acc_s
     return report_accuracy
 
 
@@ -41,7 +42,7 @@ def compute_dp(y_pred, x_sens):
     for s in sensitives:
         mask = (x_sens == s) & (y_pred != 10000.)
         pos_r = y_pred[mask].sum() / mask.sum()
-        report_fairness['Positive rate on {}'.format(s)] = pos_r
+        report_fairness['pos{}'.format(s)] = pos_r
     return report_fairness
 
 
@@ -66,11 +67,20 @@ def split_data(X, y, proc_train, proc_unlab, seed=None, shuffle=True):
     return X_train, y_train, X_unlab, X_test, y_test
 
 
-def run_experiment(X, y, alphas, seed, method, proc_train,
+def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
                    proc_unlab, cv, num_c, num_gamma,
                    verbose, n_jobs):
+    sensitives = np.unique(X[:, -1])
     X_train, y_train, X_unlab, X_test, y_test = split_data(X, y, proc_train,
                                                            proc_unlab, seed)
+
+    if not isinstance(alphas, dict):
+        alphas_dict= {}
+        for s in sensitives:
+            alphas_dict[s] = alphas
+    else:
+        alphas_dict = alphas
+    SIGNATURE = '{}_{}_'.format(data_name, method)
     scaler = StandardScaler()
     scaler.fit(X_train[:, :-1])
 
@@ -108,27 +118,34 @@ def run_experiment(X, y, alphas, seed, method, proc_train,
                        cv=cv, refit=True, verbose=verbose,
                        n_jobs=n_jobs)
     clf.fit(X_train, y_train)
-    transformer = TransformDPAbstantion(clf, alphas)
+    transformer = TransformDPAbstantion(clf, alphas_dict)
     transformer.fit(X_unlab)
     y_pred = transformer.predict(X_test)
     y_pred_unf = clf.predict(X_test)
 
     # For test data
-    print('[{}]: summary'.format(key))
-    report_fairness_test = compute_dp(y_test, X_test[:, -1])
-    print_report(report_fairness_test, 'Test data')
+    fairness_test = compute_dp(y_test, X_test[:, -1])
+    # print_report(fairness_test, 'Test')
 
     # For base method
-    report_accuracy_base = risk(y_test, y_pred_unf, X_test[:, -1])
-    report_fairness_test = compute_dp(y_pred_unf, X_test[:, -1])
-    print_report(report_accuracy_base, 'Base method')
-    print_report(report_fairness_test, 'Base method')
+    accuracy_base = risk(y_test, y_pred_unf, X_test[:, -1])
+    fairness_base = compute_dp(y_pred_unf, X_test[:, -1])
+    # print_report(accuracy_base, 'Base')
+    # print_report(fairness_base, 'Base')
 
     # For our method
-    report_accuracy_our = risk(y_test, y_pred, X_test[:, -1])
-    report_fairness_our = compute_dp(y_pred, X_test[:, -1])
-    report_reject_our = classififcation_rate(y_pred, X_test[:, -1])
-    print_report(report_accuracy_our, 'Our method')
-    print_report(report_fairness_our, 'Our method')
-    print_report(report_reject_our, 'Our method')
+    accuracy_our = risk(y_test, y_pred, X_test[:, -1])
+    fairness_our = compute_dp(y_pred, X_test[:, -1])
+    reject_our = classififcation_rate(y_pred, X_test[:, -1])
+    # print_report(accuracy_our, 'Our')
+    # print_report(fairness_our, 'Our')
+    print_report(reject_our, 'Our')
+
+    results = {
+    'test' : fairness_test,
+    'base' : {**accuracy_base, **fairness_base},
+    'our' : {**accuracy_our, **fairness_our, **reject_our}
+    }
+
+    return results
     # break
