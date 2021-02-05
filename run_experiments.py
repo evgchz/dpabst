@@ -18,7 +18,7 @@ RUN_ADULT = True
 RUN_MARKET = False
 RUN_COMPAS = False
 RUN_GERMAN = False
-METHODS = ['LR']
+METHODS = ['RF']
 
 
 setup = {
