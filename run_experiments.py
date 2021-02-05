@@ -1,5 +1,5 @@
 import numpy as np
-from get_data import get_adult
+from get_data import get_adult, get_german, get_compas
 from make_experiment import split_data, run_experiment
 import pickle
 
@@ -18,7 +18,7 @@ RUN_ADULT = True
 RUN_MARKET = False
 RUN_COMPAS = False
 RUN_GERMAN = False
-METHODS = ['RF']
+METHODS = ['RF+']
 
 
 setup = {
@@ -38,9 +38,9 @@ check_run = {
     'German': RUN_GERMAN
 }
 datasets = {
-            'Compas': None,
+            'Compas': get_compas,
             'Marketing': None,
-            'German': None,
+            'German': get_german,
             'Adult': get_adult
             }
 seeds = np.arange(20)

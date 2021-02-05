@@ -96,7 +96,8 @@ def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
     methods = {
         "LR" : LogisticRegression(solver='liblinear'),
         "L-SVC": CalibratedClassifierCV(LinearSVC(dual=dual)),
-        "RF" : RandomForestClassifier()
+        "RF" : RandomForestClassifier(),
+        "RF+" : RandomForestClassifier()
         # "RBF-SVC": SVC(probability=True),
     }
 
@@ -106,10 +107,13 @@ def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
     pows = np.array([1, 15/16, 7/8, 3/4, 1/2, 1/4, 1/8, 1/16, 0])
     ds = np.unique((d ** pows).astype('int'))
 
+    randomize = True if method == "RF+" else False
+
     parameters = {
         "LR" : {"C" : Cs},
         "L-SVC" : {"base_estimator__C" : Cs},
-        "RF" : {"max_features" : ds}
+        "RF" : {"max_features" : ds},
+        "RF+" : {"max_features" : ds}
         # "RBF-SVC" : {"C" : Cs, "gamma" : gammas}
     }
     # for key in methods.keys():
@@ -118,7 +122,8 @@ def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
                        cv=cv, refit=True, verbose=verbose,
                        n_jobs=n_jobs)
     clf.fit(X_train, y_train)
-    transformer = TransformDPAbstantion(clf, alphas_dict)
+    transformer = TransformDPAbstantion(clf, alphas=alphas_dict,
+                                        randomize=randomize)
     transformer.fit(X_unlab)
     y_pred = transformer.predict(X_test)
     y_pred_unf = clf.predict(X_test)

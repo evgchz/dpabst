@@ -7,14 +7,35 @@ from .lp_solver import solve_lp
 
 
 class TransformDPAbstantion(BaseEstimator):
-    def __init__(self, base_classifier, alphas
+    def __init__(self, base_classifier, alphas,
                  randomize=False, noise=1e-3):
+        """Transform base classifier into a classifier with abstention Demographic Parity constraints
+
+        Parameters
+        ----------
+        base_classifier : estimator object
+            Estimator needs to provide ``predict_proba`` function.
+            WARNING: it is assumed that the base classifier is already fitted and that the labels are ZERO and ONE. An Error will be raised if it is not the case during fit stage.
+        alphas : dict
+            Dictionary with keys being sensitive attributes and values being classification rates per sensitive attribute. Keys assumed to be numeric, coinciding with the last column of the design matrix during fit and predict.
+        randomize : bool
+            If True, then uniformly distribute noise on [0, noise] is added to the probabilities predicted by base_classifier
+        noise : float,
+            Used only if randomize=True.
+        """
         self.base = base_classifier
         self.alphas = alphas
         self.randomize = randomize
         self.noise = noise
 
     def fit(self, X_unlab):
+        """Fits the method
+
+        Parameters
+        ----------
+        X_unlab : array-like
+            It is assumed that the sensitive attribute is stored in the LAST column. An Error will be raised if it is not the case.
+        """
         sensitives = np.unique(X_unlab[:, -1])
         if set(self.base.classes_) != set([0., 1.]):
             raise ValueError('Target variable is not valued in 0/1')
@@ -38,18 +59,25 @@ class TransformDPAbstantion(BaseEstimator):
             c = .5 + (alpha * gammas[i] / (alphas[i] * ps[i]) - gammas.sum()) / 2
             self.thresholds_[s] = c
             self.check_reject_[s] = [a, b]
-            # print(lambdas)
 
     def predict(self, X):
-        # stupid implementation
+        """Predict
+
+        Parameters
+        ----------
+        X : array-like
+            It is assumed that the sensitive attribute is stored in the LAST column. An Error will be raised if it is not the case.
+
+        """
+        sensitives = np.unique(X[:, -1])
+        if set(sensitives) != set(self.alphas.keys()):
+            raise ValueError('Groups do not match: data {}, alphas {}'.format(set(sensitives), set(self.alphas.keys())))
         n, _ = X.shape
         probs = self.base.predict_proba(X)[:, 1]
         if self.randomize:
-            prob += np.random.uniform(0, self.noise, n)
+            probs += np.random.uniform(0, self.noise, n)
 
         y_pred = np.zeros(n)
-        sensitives = np.unique(X[:, -1])
-
         for s in sensitives:
             s_mask = X[:, -1] == s
             a = self.check_reject_[s][0]

@@ -23,3 +23,12 @@ def get_adult():
     y = y.astype('float')
     n, _ = X.shape
     return X, y
+
+
+
+def get_german():
+    pass
+
+
+def get_compas():
+    pass
