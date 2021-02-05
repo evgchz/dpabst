@@ -7,9 +7,12 @@ from .lp_solver import solve_lp
 
 
 class TransformDPAbstantion(BaseEstimator):
-    def __init__(self, base_classifier, alphas=None):
+    def __init__(self, base_classifier, alphas
+                 randomize=False, noise=1e-3):
         self.base = base_classifier
         self.alphas = alphas
+        self.randomize = randomize
+        self.noise = noise
 
     def fit(self, X_unlab):
         sensitives = np.unique(X_unlab[:, -1])
@@ -21,6 +24,8 @@ class TransformDPAbstantion(BaseEstimator):
         K = len(sensitives)
         prob = self.base.predict_proba(X_unlab)
         prob = prob[:, 1]
+        if self.randomize:
+            prob += np.random.uniform(0, self.noise, n)
         ps, ns, pred_prob, alphas = build_params(X_unlab, prob, self.alphas)
         res = solve_lp(ps, ns, alphas, pred_prob)
         alpha = ps.dot(alphas)
@@ -39,6 +44,8 @@ class TransformDPAbstantion(BaseEstimator):
         # stupid implementation
         n, _ = X.shape
         probs = self.base.predict_proba(X)[:, 1]
+        if self.randomize:
+            prob += np.random.uniform(0, self.noise, n)
 
         y_pred = np.zeros(n)
         sensitives = np.unique(X[:, -1])
