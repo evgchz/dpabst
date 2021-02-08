@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from get_data import get_adult, get_german, get_compas
 from make_experiment import split_data, run_experiment
 import pickle
@@ -18,8 +19,13 @@ def load_obj(name):
 RUN_ADULT = False
 RUN_MARKET = False
 RUN_COMPAS = False
+<<<<<<< HEAD
 RUN_GERMAN = True
 METHODS = ['LR']
+=======
+RUN_GERMAN = False
+METHODS = ['LR+']
+>>>>>>> 2c2d32c746ae6e5937bc3020535cf13e8c12c41c
 
 
 setup = {
