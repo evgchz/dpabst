@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib import rcParams
 from matplotlib import rc
 import seaborn as sns
+import os
 
 # Set it to false if you do not want to render plots with your own tex.
 MY_LATEX = True
@@ -240,7 +241,7 @@ def positive_vs_alpha_per_group(results, seeds, alpha_grid,
 
 
 
-DATA = "Adult"
+DATA = "German"
 METHOD = "LR"
 NAME = '{}_{}'.format(DATA, METHOD)
 SENSITIVES = [0.0, 1.0]

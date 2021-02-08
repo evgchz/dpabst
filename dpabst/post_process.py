@@ -8,7 +8,7 @@ from .lp_solver import solve_lp
 
 class TransformDPAbstantion(BaseEstimator):
     def __init__(self, base_classifier, alphas,
-                 randomize=False, noise=1e-3):
+                 randomize=True, noise=1e-3):
         """Transform base classifier into a classifier with abstention Demographic Parity constraints
 
         Parameters

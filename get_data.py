@@ -1,6 +1,6 @@
 from fairlearn.datasets import fetch_adult, fetch_bank_marketing
 import numpy as np
-
+import pandas as pd
 
 def get_adult():
     adult = fetch_adult()
@@ -24,10 +24,17 @@ def get_adult():
     n, _ = X.shape
     return X, y
 
-
-
 def get_german():
-    pass
+    df = pd.read_csv("german_dataset/german_numeric.csv")
+    X = df.drop("Type", axis=1).to_numpy()[:,1:] # remove label and index columns
+    y = df["Type"].to_numpy()
+
+
+    X = X.astype("float")
+    y = y.astype("float")
+
+    n, _ = X.shape
+    return X, y
 
 
 def get_compas():

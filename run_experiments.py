@@ -2,6 +2,7 @@ import numpy as np
 from get_data import get_adult, get_german, get_compas
 from make_experiment import split_data, run_experiment
 import pickle
+import os
 
 
 def save_obj(obj, name):
@@ -14,10 +15,10 @@ def load_obj(name):
 
 
 
-RUN_ADULT = True
+RUN_ADULT = False
 RUN_MARKET = False
 RUN_COMPAS = False
-RUN_GERMAN = False
+RUN_GERMAN = True
 METHODS = ['LR']
 
 
