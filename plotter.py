@@ -241,7 +241,7 @@ def positive_vs_alpha_per_group(results, seeds, alpha_grid,
 
 
 DATA = "Adult"
-METHOD = "RF+"
+METHOD = "LR"
 NAME = '{}_{}'.format(DATA, METHOD)
 SENSITIVES = [0.0, 1.0]
 COLORS = {

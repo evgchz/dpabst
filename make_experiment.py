@@ -6,7 +6,9 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.calibration import CalibratedClassifierCV
+import joblib
 import pandas as pd
+import os
 
 
 
@@ -116,14 +118,29 @@ def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
         "RF+" : {"max_features" : ds}
         # "RBF-SVC" : {"C" : Cs, "gamma" : gammas}
     }
-    # for key in methods.keys():
     key = method
-    clf = GridSearchCV(methods[key], parameters[key],
-                       cv=cv, refit=True, verbose=verbose,
-                       n_jobs=n_jobs)
-    clf.fit(X_train, y_train)
+    BASE_MODEL_SIGNATURE = "{}_{}_{}".format(data_name, method, seed)
+    BASE_MODEL_PATH = 'results/models/{}.pkl'.format(BASE_MODEL_SIGNATURE)
+
+    '''
+        Base model does not depend on alpha. Load if it exists, and fit it if not.
+    '''
+    try:
+        clf = joblib.load(BASE_MODEL_PATH)
+        print('Model {} loaded'.format(BASE_MODEL_SIGNATURE))
+    except:
+        print('Model {} not found. Fitting ...'.format(BASE_MODEL_SIGNATURE))
+        clf = GridSearchCV(methods[key], parameters[key],
+                           cv=cv, refit=True, verbose=verbose,
+                           n_jobs=n_jobs)
+        clf.fit(X_train, y_train)
+        joblib.dump(clf, BASE_MODEL_PATH)
+
+    '''
+        Transformation step is cheap, we do not save it.
+    '''
     transformer = TransformDPAbstantion(clf, alphas=alphas_dict,
-                                        randomize=randomize)
+                                            randomize=randomize)
     transformer.fit(X_unlab)
     y_pred = transformer.predict(X_test)
     y_pred_unf = clf.predict(X_test)
@@ -153,4 +170,3 @@ def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
     }
 
     return results
-    # break
