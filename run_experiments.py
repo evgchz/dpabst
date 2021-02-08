@@ -1,4 +1,5 @@
 import numpy as np
+import os
 from get_data import get_adult, get_german, get_compas
 from make_experiment import split_data, run_experiment
 import pickle
@@ -18,7 +19,7 @@ RUN_ADULT = True
 RUN_MARKET = False
 RUN_COMPAS = False
 RUN_GERMAN = False
-METHODS = ['LR']
+METHODS = ['LR+']
 
 
 setup = {
