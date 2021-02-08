@@ -260,7 +260,8 @@ seeds = np.arange(20)
 alphas_grid = np.linspace(.5, .95, 10)
 
 results = load_obj(NAME)
-
+if not os.path.exists('results/plots'):
+    os.makedirs('results/plots')
 
 lb, ub = accuracy_vs_alpha_per_group(results, seeds, alphas_grid,
                                      title=title, sensitives=SENSITIVES,
