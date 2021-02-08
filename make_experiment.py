@@ -109,17 +109,26 @@ def run_experiment(X, y, alphas, seed, method, data_name, proc_train,
     pows = np.array([1, 15/16, 7/8, 3/4, 1/2, 1/4, 1/8, 1/16, 0])
     ds = np.unique((d ** pows).astype('int'))
 
-    randomize = True if method == "RF+" else False
+
+    if method[-1] == "+":
+        randomize = True
+        postfix = "+"
+        method = method[:-1]
+    else:
+        randomize = False
+        postfix = ""
+    # randomize = True if method[-1] == "+" else False
 
     parameters = {
         "LR" : {"C" : Cs},
         "L-SVC" : {"base_estimator__C" : Cs},
         "RF" : {"max_features" : ds},
-        "RF+" : {"max_features" : ds}
+        # "RF+" : {"max_features" : ds}
         # "RBF-SVC" : {"C" : Cs, "gamma" : gammas}
     }
     key = method
-    BASE_MODEL_SIGNATURE = "{}_{}_{}".format(data_name, method, seed)
+    BASE_MODEL_SIGNATURE = "{}_{}{}_{}".format(data_name, method,
+                                               postfix, seed)
     BASE_MODEL_PATH = 'results/models/{}.pkl'.format(BASE_MODEL_SIGNATURE)
 
     '''
