@@ -18,7 +18,7 @@ RUN_ADULT = True
 RUN_MARKET = False
 RUN_COMPAS = False
 RUN_GERMAN = False
-METHODS = ['RF+']
+METHODS = ['LR']
 
 
 setup = {
@@ -50,6 +50,10 @@ alphas_grid = np.linspace(.5, .95, 10)
 
 total = len(seeds)
 
+if not os.path.exists('results'):
+    os.makedirs('results')
+if not os.path.exists('results/models'):
+    os.makedirs('results/models')
 for method in METHODS:
     print('[{}] is running'.format(method))
     for data in datasets.keys():
