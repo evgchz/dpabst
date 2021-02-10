@@ -95,5 +95,6 @@ class TransformDPAbstantion(BaseEstimator):
                              True, False)
             y_pred[m_pos] = 1.
             y_pred[m_rej] = 10000.
-            # print('Sensitive: {} strip_center {}, strip_width {}'.format(s,a,b))
+            if False:
+                print('Sensitive: {} center {}, width {}'.format(s, a, b))
         return y_pred
