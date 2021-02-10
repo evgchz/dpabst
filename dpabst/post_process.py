@@ -62,13 +62,10 @@ class TransformDPAbstantion(BaseEstimator):
         res = solve_lp(ps, ns, alphas, pred_prob)
         alpha = ps.dot(alphas)
         lambdas, gammas = convert_lp_result(res, ns, K)
-        self.thresholds_ = {}
         self.check_reject_ = {}
         for i, s in enumerate(sensitives):
             a = .5 * (1 - gammas.sum()) + (alpha * gammas[i]) / (2 * alphas[i] * ps[i])
             b = .5 * (1 - gammas.sum()) + (alpha * gammas[i]) / (2 * alphas[i] * ps[i]) + lambdas[i] * alpha / ps[i]
-            c = .5 + (alpha * gammas[i] / (alphas[i] * ps[i]) - gammas.sum()) / 2
-            self.thresholds_[s] = c
             self.check_reject_[s] = [a, b]
 
     def predict(self, X):
@@ -93,10 +90,10 @@ class TransformDPAbstantion(BaseEstimator):
             s_mask = X[:, -1] == s
             a = self.check_reject_[s][0]
             b = self.check_reject_[s][1]
-            c = self.thresholds_[s]
-            m_pos = np.where((X[:, -1] == s) & (probs > c), True, False)
+            m_pos = np.where((X[:, -1] == s) & (probs > a), True, False)
             m_rej = np.where((X[:, -1] == s) & (np.abs(a - probs) <= b),
                              True, False)
             y_pred[m_pos] = 1.
             y_pred[m_rej] = 10000.
+            # print('Sensitive: {} strip_center {}, strip_width {}'.format(s,a,b))
         return y_pred
