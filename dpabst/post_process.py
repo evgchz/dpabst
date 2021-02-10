@@ -8,7 +8,7 @@ from .lp_solver import solve_lp
 
 class TransformDPAbstantion(BaseEstimator):
     def __init__(self, base_classifier, alphas,
-                 randomize=True, noise=1e-3):
+                 randomize=True, noise=1e-3, prob_s=None):
         """Transform base classifier into a classifier with abstention Demographic Parity constraints
 
         Parameters
@@ -22,11 +22,14 @@ class TransformDPAbstantion(BaseEstimator):
             If True, then uniformly distribute noise on [0, noise] is added to the probabilities predicted by base_classifier
         noise : float,
             Used only if randomize=True.
+        prob_s : dict, optional
+            Marginal distribution of sensitive attributes. If set to None, then it will be estimated during the fit stage.
         """
         self.base = base_classifier
         self.alphas = alphas
         self.randomize = randomize
         self.noise = noise
+        self.prob_s = prob_s
 
     def fit(self, X_unlab):
         """Fits the method
@@ -48,6 +51,14 @@ class TransformDPAbstantion(BaseEstimator):
         if self.randomize:
             prob += np.random.uniform(0, self.noise, n)
         ps, ns, pred_prob, alphas = build_params(X_unlab, prob, self.alphas)
+
+        if self.prob_s:
+            if set(sensitives) != set(self.prob_s.keys()):
+                raise ValueError('Groups do not match: data {}, probs {}'.format(set(sensitives), set(self.alphas.keys())))
+            ps = []
+            for s in sensitives:
+                ps.append(self.prob_s[s])
+            ps = np.array(ps)
         res = solve_lp(ps, ns, alphas, pred_prob)
         alpha = ps.dot(alphas)
         lambdas, gammas = convert_lp_result(res, ns, K)
