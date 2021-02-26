@@ -58,10 +58,16 @@ print(y_pred)
 # Bibentry
 
 @misc{Schreuder_Chzhen21,
+
       title={Classification with abstention but without disparities}, 
+      
       author={N. Schreuder and E. Chzhen},
+      
       year={2021},
+      
       eprint={2102.12258},
+      
       archivePrefix={arXiv},
+      
       primaryClass={stat.ML}
 }
