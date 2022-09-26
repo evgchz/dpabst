@@ -61,7 +61,6 @@ print(y_pred)
       title={Classification with abstention but without disparities}, 
       author={N. Schreuder and E. Chzhen},
       year={2021},
-      journal={UAI2021},
-      note={(spotlight, runner-up best student paper award)}
+      journal={UAI2021}
 }
 
