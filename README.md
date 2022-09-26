@@ -57,7 +57,7 @@ print(y_pred)
 
 # Bibentry
 ```bib
-@article{schreuder2021classification,
+@article{Schreuder_Chzhen21,
       title={Classification with abstention but without disparities}, 
       author={N. Schreuder and E. Chzhen},
       year={2021},
